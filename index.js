@@ -1,7 +1,16 @@
-import Express, { request } from "express";
-const app = Express();
+import express from "express";
+import logger from './logger.js';
+import auth from './authenticator.js'
+const app = express();
 const port = process.env.PORT || 3000;
-app.use(Express.json());
+
+
+
+app.use(express.json());
+
+app.use(logger);
+
+app.use(auth);
 
 
 const recipes = [
@@ -73,6 +82,6 @@ app.delete('/api/recipes/:id', (req,res) => {
     res.send(recipe);
 
 
-}),
+});
 
 app.listen(port, () => console.log("listening on port " + port ))
