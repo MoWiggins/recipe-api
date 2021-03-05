@@ -1,7 +1,7 @@
 import express from "express";
 const router = express.Router();
 
-const recipes = [
+export const recipes = [
 	{ id: 1, name: "bariis", culture: "somali" },
 	{ id: 2, name: "doro wat", culture: "ethiopian" },
 	{ id: 3, name: "cheeseburger", culture: "American" },
@@ -10,6 +10,24 @@ const recipes = [
 //endpoint for all recipes
 router.get("/", (req, res) => {
 	res.send(recipes);
+});
+
+//endpoint to get all recipes by culture
+router.get("/culture/:culture", (req, res) => {
+	const list = [];
+	const culture = req.params.culture.toLowerCase();
+	for (let i = 0; i < recipes.length; i++) {
+		const current = recipes[i].culture.toLowerCase();
+		if (current === culture) {
+			list.push(recipes[i]);
+		}
+	}
+	if (list.length == 0)
+		return res
+			.status(404)
+			.send("no recipies with the culture of " + req.params.culture);
+
+	return res.send(list);
 });
 
 //endpoint for a specific recipe by id

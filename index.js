@@ -1,8 +1,8 @@
 import express from "express";
 import logger from "./middleware/logger.js";
 import auth from "./middleware/authenticator.js";
-import recipes from "./routes/recipes.js";
 import home from "./routes/home.js";
+import recipes from "./routes/recipes.js";
 const app = express();
 const port = process.env.PORT || 3000;
 
