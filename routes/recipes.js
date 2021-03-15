@@ -1,86 +1,92 @@
 import express from "express";
+import mongoose from "mongoose";
 const router = express.Router();
 
-export const recipes = [
-	{ id: 1, name: "bariis", culture: "somali" },
-	{ id: 2, name: "doro wat", culture: "ethiopian" },
-	{ id: 3, name: "cheeseburger", culture: "American" },
-];
+const Recipe = mongoose.model(
+	"Recipe",
+	new mongoose.Schema({
+		name: {
+			type: String,
+			required: true,
+			minlength: 3,
+			maxlength: 50,
+		},
+		culture: {
+			type: String,
+			required: true,
+		},
+	})
+);
 
 //endpoint for all recipes
-router.get("/", (req, res) => {
+router.get("/", async (req, res) => {
+	const recipes = await Recipe.find().sort("name");
 	res.send(recipes);
 });
 
-//endpoint to get all recipes by culture
-router.get("/culture/:culture", (req, res) => {
-	const list = [];
-	const culture = req.params.culture.toLowerCase();
-	for (let i = 0; i < recipes.length; i++) {
-		const current = recipes[i].culture.toLowerCase();
-		if (current === culture) {
-			list.push(recipes[i]);
-		}
-	}
-	if (list.length == 0)
-		return res
-			.status(404)
-			.send("no recipies with the culture of " + req.params.culture);
-
-	return res.send(list);
-});
-
 //endpoint for a specific recipe by id
-//we can have multiple parameters for instance
-// '/api/recipes/:culture/:vegan'
-router.get("/:id", (req, res) => {
-	const recipe = recipes.find((r) => r.id === parseInt(req.params.id));
+router.get("/:id", async (req, res) => {
+	const recipe = await Recipe.findById(req.params.id);
+
 	if (!recipe)
 		return res.status(404).send("the recipe with the given id was not found");
 
 	res.send(recipe);
 });
 
+//trying to get all recipes by culture
+/* router.get("/culture/:culture", async (req, res) => {
+	if (!req.body.culture)
+		return res.status(400).send("Recipe culture is required");
+
+	const recipes = await Recipe.find();
+
+	res.send(recipes);
+}); */
+
 //endpoint to create a new recipe and put it in the list of recipes
-router.post("/", (req, res) => {
+router.post("/", async (req, res) => {
 	if (!req.body.name) return res.status(400).send("Recipe name is required");
 
 	if (!req.body.culture)
 		return res.status(400).send("Recipe culture is required");
 
-	const recipe = {
-		id: recipes.length + 1,
+	let recipe = new Recipe({
 		name: req.body.name,
 		culture: req.body.culture,
-	};
-	recipes.push(recipe);
+	});
+	recipe = await recipe.save();
 	res.send(recipe);
 });
 
 //endpoint to update a recipe
-router.put("/:id", (req, res) => {
-	const recipe = recipes.find((r) => r.id === parseInt(req.params.id));
-	if (!recipe)
-		return res.status(404).send("the recipe with the given id was not found");
-
+router.put("/:id", async (req, res) => {
 	if (!req.body.name) return res.status(400).send("Recipe name is required");
 
 	if (!req.body.culture)
 		return res.status(400).send("Recipe culture is required");
 
-	recipe.name = req.body.name;
-	recipe.culture = req.body.culture;
+	const recipe = await Recipe.findByIdAndUpdate(
+		req.params.id,
+		{ name: req.body.name, culture: req.body.culture },
+		{
+			new: true,
+		}
+	);
+
+	if (!recipe)
+		return res.status(404).send("the recipe with the given id was not found");
+
 	res.send(recipe);
 });
 
 //endpoint to delete recipes
-router.delete("/:id", (req, res) => {
-	const recipe = recipes.find((r) => r.id === parseInt(req.params.id));
+router.delete("/:id", async (req, res) => {
+	const recipe = await Recipe.findByIdAndRemove(req.params.id);
+
 	if (!recipe)
 		return res.status(404).send("the recipe with the given id was not found");
 
-	const index = recipes.indexOf(recipe);
-	recipes.splice(index, 1);
 	res.send(recipe);
 });
 
