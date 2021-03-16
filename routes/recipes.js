@@ -34,15 +34,16 @@ router.get("/:id", async (req, res) => {
 	res.send(recipe);
 });
 
-//trying to get all recipes by culture
-/* router.get("/culture/:culture", async (req, res) => {
-	if (!req.body.culture)
-		return res.status(400).send("Recipe culture is required");
+//get all recipes by culture
+router.get("/culture/:culture", async (req, res) => {
+	const culture = req.params.culture;
+	const recipes = await Recipe.find({ culture: culture });
 
-	const recipes = await Recipe.find();
+	if (recipes.length === 0)
+		return res.status(404).send("There are no recipes with that culture");
 
 	res.send(recipes);
-}); */
+});
 
 //endpoint to create a new recipe and put it in the list of recipes
 router.post("/", async (req, res) => {
